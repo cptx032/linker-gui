@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from boring.window import Window
-from boring.widgets import Entry, ScrollableExtendedListbox, Label
+from boring.widgets import Entry, ScrollableExtendedListbox, Label, Button, Frame
 import boring.dialog
 import boring.form
 from linker import models
@@ -28,19 +28,41 @@ class NewElemWindow(boring.dialog.DefaultDialog):
 
 class MainWindow(Window):
     def __init__(self):
-        Window.__init__(self)
+        Window.__init__(self, bg='#dadada')
         self.__items = []
         self.___actual_item = 1
         self.title('Linker gui')
 
-        self.__folder_label = Label(self, text='ok')
+        self.__topframe = Frame(self)
+        self.__topframe.pack(
+            anchor='w', expand='yes', fill='x',
+            pady=5,
+            padx=5
+        )
+
+        self.__folder_label = Label(self.__topframe, text='ok')
         self.__folder_label.pack(
-            anchor='w',
+            anchor='w', side='left',
+            pady=5,
+            padx=5
+        )
+
+        self.__delbtn = Button(
+            self.__topframe,
+            text='x',
+            width=20
+        )
+
+        self.__delbtn.pack(
+            anchor='e', side='right',
             pady=5,
             padx=5
         )
 
         self.commandentry = Entry(self)
+        self.commandentry.configure(
+            bg='#c5c5c5', highlightthickness=0
+        )
         self.commandentry.pack(
             pady=5, padx=5,
             fill='x'
@@ -67,6 +89,16 @@ class MainWindow(Window):
         self.commandentry.bind('<Return>', self.__run_selected_command_handler, '+')
         self.bind('<Any-KeyRelease>', self.__key_handler, '+')
         self.bind('<Control-n>', self.__new_elem_handler, '+')
+
+        self.bind('<Control-x>', self.__del_handler, '+')
+        self.__delbtn.bind('<1>', self.__del_handler, '+')
+
+    def __del_handler(self, event=None):
+        if boring.dialog.OkCancel(self, u'Deseja excluir *%s*?' % self.__folder_label.text).output:
+            elem = models.Elem.get_by_id(self.___actual_item)
+            parent = elem.get_parent()
+            elem.remove()
+            self.show_item(parent.id)
 
     def __new_elem_handler(self, event=None):
         new = NewElemWindow(self)
@@ -131,6 +163,7 @@ class MainWindow(Window):
             items.append(item_dict)
         self.items = items
         self.show_items(items)
+        self.commandentry.text = u''
 
     def __create_item_click_handler(self, _id):
         def __handler(event=None):
