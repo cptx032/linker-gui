@@ -6,13 +6,16 @@ import boring.form
 from linker import models
 
 class NewElemWindow(boring.dialog.DefaultDialog):
-    def __init__(self, master):
+    def __init__(self, master, initial=['', '']):
         self.output = None
+        self.__initial = initial
         boring.dialog.DefaultDialog.__init__(self, master)
 
     def body(self, master):
         self.form = boring.form.FormFrame(
-            master, 'Name@string\nDesc@string')
+            master, 'Name@string\nDesc@string',
+            initial_values=self.__initial
+        )
         self.form.grid(pady=10, padx=10)
 
         return self.form.inputs[0]
@@ -34,50 +37,44 @@ class MainWindow(Window):
         self.title('Linker gui')
 
         self.__topframe = Frame(self)
+        self.__topframe.configure(bg='#37474f')
         self.__topframe.pack(
-            anchor='w', fill='x',
-            pady=5,
-            padx=5
+            anchor='w', fill='x'
         )
 
-        self.__folder_label = Label(self.__topframe, text='ok')
+        self.__folder_label = Label(
+            self.__topframe,
+            text='ok', fg='#ffffff',
+            font=('TkDefaultFont', 12)
+        )
         self.__folder_label.pack(
             anchor='w', side='left',
-            pady=5,
-            padx=5
+            pady=15,
+            padx=15
         )
 
-        self.__delbtn = Button(
-            self.__topframe,
-            text='x',
-            width=20
+        self.commandentry = Entry(
+            self.__topframe
         )
-
-        self.__delbtn.pack(
-            anchor='e', side='right',
-            pady=5,
-            padx=5
-        )
-
-        self.commandentry = Entry(self)
         self.commandentry.configure(
             bg='#c5c5c5', highlightthickness=0
         )
         self.commandentry.pack(
-            pady=5, padx=5,
+            pady=7, padx=8,
             fill='x'
         )
 
         self.commands = ScrollableExtendedListbox(
             self,
             width=800,
-            height=300, highlightthickness=0
+            height=300, highlightthickness=0,
+            bd=0
         )
         self.commands.pack(
             expand='yes',
             fill='both',
             pady=0,
-            padx=5
+            padx=0
         )
 
         self.commandentry.focus_force()
@@ -91,13 +88,31 @@ class MainWindow(Window):
         self.bind('<Control-n>', self.__new_elem_handler, '+')
 
         self.bind('<Control-x>', self.__del_handler, '+')
-        self.__delbtn.bind('<1>', self.__del_handler, '+')
+        self.bind('<Control-e>', self.__edit_handler, '+')
 
         self.bind('<FocusIn>', lambda evt: self.commandentry.focus_force(), '+')
 
+    def __edit_handler(self, event=None):
+        selected = self.commands.get_selected()
+        elem = models.Elem.search_by_name_description(
+            selected.title, selected.subtitle
+        )
+        if elem:
+            new = NewElemWindow(self, initial=[elem.name, elem.desc])
+            if new.output:
+                elem.name = new.output.get('name')
+                elem.desc = new.output.get('desc')
+                elem.update()
+                parent = elem.get_parent()
+                if parent:
+                    self.show_item(parent.id)
+
     def __del_handler(self, event=None):
-        if boring.dialog.OkCancel(self, u'Deseja excluir *%s*?' % self.__folder_label.text).output:
-            elem = models.Elem.get_by_id(self.___actual_item)
+        selected = self.commands.get_selected()
+        elem = models.Elem.search_by_name_description(
+            selected.title, selected.subtitle
+        )
+        if elem and boring.dialog.OkCancel(self, u'Deseja excluir *%s*?' % elem.name).output:
             parent = elem.get_parent()
             elem.remove()
             self.show_item(parent.id)
