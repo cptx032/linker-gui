@@ -35,7 +35,7 @@ class MainWindow(Window):
 
         self.__topframe = Frame(self)
         self.__topframe.pack(
-            anchor='w', expand='yes', fill='x',
+            anchor='w', fill='x',
             pady=5,
             padx=5
         )
@@ -93,6 +93,8 @@ class MainWindow(Window):
         self.bind('<Control-x>', self.__del_handler, '+')
         self.__delbtn.bind('<1>', self.__del_handler, '+')
 
+        self.bind('<FocusIn>', lambda evt: self.commandentry.focus_force(), '+')
+
     def __del_handler(self, event=None):
         if boring.dialog.OkCancel(self, u'Deseja excluir *%s*?' % self.__folder_label.text).output:
             elem = models.Elem.get_by_id(self.___actual_item)
@@ -132,7 +134,6 @@ class MainWindow(Window):
         selected = self.commands.get_selected()
         if selected:
             selected.before_click(None)
-            self.commandentry.text = ''
 
     def show_item(self, _id):
         elem = models.Elem.get_by_id(_id)
@@ -164,6 +165,7 @@ class MainWindow(Window):
         self.items = items
         self.show_items(items)
         self.commandentry.text = u''
+        self.commandentry.focus_force()
 
     def __create_item_click_handler(self, _id):
         def __handler(event=None):
