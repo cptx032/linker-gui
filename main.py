@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import string
 from boring.window import Window
 from boring.widgets import Entry, ScrollableExtendedListbox, Label, Button, Frame, SimpleCheckbox
 import boring.dialog
@@ -149,6 +150,10 @@ class MainWindow(Window):
 
     def __key_handler(self, event):
         if event.keysym in ('Up', 'Down', 'Return', 'Escape'):
+            return
+        chars_that_do_refresh = list(string.printable)
+        chars_that_do_refresh.extend(['BackSpace'])
+        if event.keysym not in chars_that_do_refresh:
             return
         final_items = []
         entry_text = self.commandentry.text.lower()
