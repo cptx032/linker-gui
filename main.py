@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from boring.window import Window
-from boring.widgets import Entry, ScrollableExtendedListbox, Label, Button, Frame
+from boring.widgets import Entry, ScrollableExtendedListbox, Label, Button, Frame, SimpleCheckbox
 import boring.dialog
 import boring.form
 from linker import models
@@ -61,7 +61,17 @@ class MainWindow(Window):
         )
         self.commandentry.pack(
             pady=7, padx=8,
-            fill='x'
+            fill='x', side='left', expand='yes'
+        )
+
+        self.close_check_box = SimpleCheckbox(self.__topframe, checked=True)
+        self.close_check_box.pack(
+            pady=7, padx=8,
+            side='right'
+        )
+        Label(self.__topframe, text='Keep open', fg='#ffffff').pack(
+            pady=7, padx=8,
+            side='right'
         )
 
         self.commands = ScrollableExtendedListbox(
@@ -91,6 +101,12 @@ class MainWindow(Window):
         self.bind('<Control-e>', self.__edit_handler, '+')
 
         self.bind('<FocusIn>', lambda evt: self.commandentry.focus_force(), '+')
+
+        self.protocol("WM_DELETE_WINDOW", self.__on_closing)
+
+    def __on_closing(self):
+        if not self.close_check_box.checked:
+            self.destroy()
 
     def __edit_handler(self, event=None):
         selected = self.commands.get_selected()
