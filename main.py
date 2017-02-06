@@ -5,6 +5,20 @@ from boring.widgets import Entry, ScrollableExtendedListbox, Label, Button, Fram
 import boring.dialog
 import boring.form
 from linker import models
+import re
+import subprocess
+from _winreg import HKEY_CURRENT_USER, OpenKey, QueryValue #fix for linux
+
+def open_link(url):
+    browser_path = ''
+    
+    with OpenKey(HKEY_CURRENT_USER, r'Software\Classes\http\shell\open\command') as key: #fix for linux
+        browser_path = QueryValue(key, '')
+
+    only_pathregx = re.compile(r'[A-Za-z]{1}\:.+\.exe')
+    browser_path = only_pathregx.findall(browser_path)[0]
+
+    subprocess.call([browser_path, url])
 
 class NewElemWindow(boring.dialog.DefaultDialog):
     def __init__(self, master, initial=['', '']):
@@ -175,6 +189,10 @@ class MainWindow(Window):
         elem = models.Elem.get_by_id(_id)
         if not elem:
             return
+
+        if elem.desc.startswith('http'):
+            open_link(elem.desc)
+
         self.___actual_item = _id
         self.__folder_label.text = elem.name
         items = list()
@@ -198,6 +216,7 @@ class MainWindow(Window):
             elif i.type == models.LINK:
                 item_dict['icon'] = 'icons/note.png'
             items.append(item_dict)
+        
         self.items = items
         self.show_items(items)
         self.commandentry.text = u''
