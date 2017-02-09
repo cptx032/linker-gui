@@ -5,20 +5,7 @@ from boring.widgets import Entry, ScrollableExtendedListbox, Label, Button, Fram
 import boring.dialog
 import boring.form
 from linker import models
-import re
-import subprocess
-from _winreg import HKEY_CURRENT_USER, OpenKey, QueryValue #fix for linux
-
-def open_link(url):
-    browser_path = ''
-    
-    with OpenKey(HKEY_CURRENT_USER, r'Software\Classes\http\shell\open\command') as key: #fix for linux
-        browser_path = QueryValue(key, '')
-
-    only_pathregx = re.compile(r'[A-Za-z]{1}\:.+\.exe')
-    browser_path = only_pathregx.findall(browser_path)[0]
-
-    subprocess.call([browser_path, url])
+import webbrowser
 
 class NewElemWindow(boring.dialog.DefaultDialog):
     def __init__(self, master, initial=['', '']):
@@ -190,8 +177,9 @@ class MainWindow(Window):
         if not elem:
             return
 
-        if elem.desc.startswith('http'):
-            open_link(elem.desc)
+        if elem.type == models.LINK:
+            webbrowser.open(elem.desc)
+	    return
 
         self.___actual_item = _id
         self.__folder_label.text = elem.name
