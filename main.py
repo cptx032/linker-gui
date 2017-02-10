@@ -5,6 +5,7 @@ from boring.widgets import Entry, ScrollableExtendedListbox, Label, Button, Fram
 import boring.dialog
 import boring.form
 from linker import models
+import webbrowser
 
 class NewElemWindow(boring.dialog.DefaultDialog):
     def __init__(self, master, initial=['', '']):
@@ -175,6 +176,11 @@ class MainWindow(Window):
         elem = models.Elem.get_by_id(_id)
         if not elem:
             return
+
+        if elem.type == models.LINK:
+            webbrowser.open(elem.desc)
+	    return
+
         self.___actual_item = _id
         self.__folder_label.text = elem.name
         items = list()
@@ -198,6 +204,7 @@ class MainWindow(Window):
             elif i.type == models.LINK:
                 item_dict['icon'] = 'icons/note.png'
             items.append(item_dict)
+        
         self.items = items
         self.show_items(items)
         self.commandentry.text = u''
