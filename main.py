@@ -179,7 +179,7 @@ class MainWindow(Window):
 
         if elem.type == models.LINK:
             webbrowser.open(elem.desc)
-	    return
+            return
 
         self.___actual_item = _id
         self.__folder_label.text = elem.name
