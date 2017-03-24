@@ -4,6 +4,7 @@ from boring.window import Window
 from boring.widgets import Entry, ScrollableExtendedListbox, Label, Button, Frame, SimpleCheckbox
 import boring.dialog
 import boring.form
+from boring.material import RaisedButton
 from linker import models
 import webbrowser
 
@@ -11,7 +12,7 @@ class NewElemWindow(boring.dialog.DefaultDialog):
     def __init__(self, master, initial=['', '']):
         self.output = None
         self.__initial = initial
-        boring.dialog.DefaultDialog.__init__(self, master)
+        boring.dialog.DefaultDialog.__init__(self, master, button_class=RaisedButton)
 
     def body(self, master):
         self.form = boring.form.FormFrame(
@@ -130,7 +131,7 @@ class MainWindow(Window):
         elem = models.Elem.search_by_name_description(
             selected.title, selected.subtitle
         )
-        if elem and boring.dialog.OkCancel(self, u'Deseja excluir *%s*?' % elem.name).output:
+        if elem and boring.dialog.OkCancel(self, u'Deseja excluir *%s*?' % elem.name, button_class=RaisedButton).output:
             parent = elem.get_parent()
             elem.remove()
             self.show_item(parent.id)
